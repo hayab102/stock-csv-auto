@@ -1,27 +1,39 @@
-name: stock-update
+name: Generate stock.csv
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 12 * * *'  # UTC 12時 = 日本時間21時に毎日実行
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: リポジトリをチェックアウト
+      # リポジトリをチェックアウト
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Pythonをセットアップ
+      # Pythonセットアップ
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.10'
 
-      - name: 必要なライブラリをインストール
+      # 必要ライブラリをインストール
+      - name: Install dependencies
         run: |
-          pip install pandas yfinance
+          pip install yfinance pandas
 
-      - name: スクリプトを実行
+      # Pythonスクリプトを実行
+      - name: Run Python script
         run: python stock_csv_generator.py
+
+      # CSVファイルをコミット＆プッシュ
+      - name: Commit and push CSV
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add stock.csv
+          git commit -m "Add generated stock.csv"
+          git push
+
 
