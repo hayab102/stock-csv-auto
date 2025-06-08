@@ -1,0 +1,35 @@
+name: Auto Update Stock CSV
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # UTC 0時 → 日本時間 9時に毎日実行
+  workflow_dispatch:      # 手動実行も可
+
+jobs:
+  update-csv:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pandas yfinance
+
+      - name: Run stock script
+        run: python stock_csv_generator.py
+
+      - name: Commit and push if changed
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add stock.csv
+          git commit -m "Update stock.csv" || echo "No changes to commit"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
