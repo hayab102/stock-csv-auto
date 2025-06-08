@@ -1,0 +1,28 @@
+.github/workflows/stock-update.yml
+name: Daily Stock CSV Update
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 毎日 00:00 UTC に実行（日本時間9:00）
+  workflow_dispatch:     # 手動実行も可能
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
+
+      - name: Install dependencies
+        run: |
+          pip install pandas yfinance
+
+      - name: Run stock script
+        run: |
+          python stock_csv_generator.py
