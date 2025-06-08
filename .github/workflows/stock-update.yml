@@ -8,32 +8,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # リポジトリをチェックアウト
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Pythonセットアップ
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      # 必要ライブラリをインストール
       - name: Install dependencies
         run: |
           pip install yfinance pandas
 
-      # Pythonスクリプトを実行
       - name: Run Python script
         run: python stock_csv_generator.py
 
-      # CSVファイルをコミット＆プッシュ
-      - name: Commit and push CSV
+      - name: Commit and push if stock.csv changed
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add stock.csv
-          git commit -m "Add generated stock.csv"
-          git push
+          git add stock.csv || true
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Update stock.csv"
+            git push
+          fi
+
 
 
