@@ -4,6 +4,7 @@ from datetime import datetime
 
 # 銘柄リスト（例：トヨタ、ソニー、任天堂など日本株なら証券コード.JP）
 tickers = ['7203.T', '6758.T', '7974.T']
+hist.to_csv("stock.csv")
 
 # 今日の日付（ファイル名に使う）
 today = datetime.now().strftime('%Y-%m-%d')
