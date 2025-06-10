@@ -19,7 +19,11 @@ from oauth2client.service_account import ServiceAccountCredentials
 scope = ['https://spreadsheets.google.com/feeds',
          'https://www.googleapis.com/auth/drive']
 
-creds = ServiceAccountCredentials.from_json_keyfile_name('my-credentials.json', scope)
+import json
+import os
+creds_dict = json.loads(os.environ['GOOGLE_CREDENTIALS'])
+creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+
 client = gspread.authorize(creds)
 
 spreadsheet = client.open("stock-auto-g.csv")
