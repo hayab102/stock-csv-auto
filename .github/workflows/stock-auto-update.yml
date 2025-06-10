@@ -32,4 +32,5 @@ jobs:
           git commit -m "Update stock.csv" || echo "No changes to commit"
           git push
         env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
