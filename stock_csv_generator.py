@@ -48,7 +48,7 @@ try:
     sheet = client.open("Stock Data Sheet")  # スプレッドシート名を正確に
     worksheet = sheet.sheet1
     worksheet.clear()
-    worksheet.update([final_df.columns.tolist()] + final_df.values.tolist())
+    worksheet.update([final_df.columns.tolist()] + final_df.astype(str).values.tolist())
     print("✅ スプレッドシートに更新完了。")
 except Exception as e:
     print("❌ スプレッドシート更新エラー:", e)
