@@ -26,7 +26,7 @@ creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
 
 # ✅ ←ここを自分のスプレッドシート名に変更！
-spreadsheet = client.open("stock_sheet")  # 例: "株価データ" など
+spreadsheet = client.open("株価シート")  # 例: "株価データ" など
 
 # シートの選択（最初のワークシートを使用）
 worksheet = spreadsheet.sheet1
