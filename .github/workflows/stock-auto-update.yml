@@ -2,14 +2,12 @@ name: Generate CSV Daily
 
 on:
   schedule:
-    - cron: '0 1 * * *'  # 毎日午前1時UTC（日本時間で午前10時）
+    - cron: '0 1 * * *'  # 毎日午前10時(JST)
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
 
     steps:
     - name: Checkout repository
@@ -22,9 +20,20 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install yfinance gspread oauth2client
+        pip install yfinance pandas gspread oauth2client
 
     - name: Run script
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
       run: python stock_csv_generator.py
+
+    - name: Commit updated CSV
+      run: |
+        git config --global user.name "github-actions"
+        git config --global user.email "github-actions@github.com"
+        git add stock.csv
+        git commit -m "Update stock.csv"
+        git push
+
 
 
