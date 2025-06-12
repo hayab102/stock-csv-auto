@@ -5,43 +5,38 @@ import json
 import os
 from oauth2client.service_account import ServiceAccountCredentials
 
-# 株式ティッカー（必要に応じて複数でもOK）
-ticker = "6758.T"  # ソニーグループの例
+# -------------------------------
+# ▼ 設定
+ticker = "AAPL"  # 任意のティッカーに変更可
+spreadsheet_name = "株価シート"  # 既に作成・共有済みのスプレッドシート名
+csv_filename = "stock.csv"
+# -------------------------------
 
-# 株価データの取得（過去10日）
+# ▼ データ取得（10日間）
 df = yf.download(ticker, period='10d', interval='1d')
+df.reset_index(inplace=True)              # Date列をインデックスから戻す
+df = df.astype(str)                       # すべて文字列に変換（gspread対応）
 
-# CSVとしてローカルに保存
-df.to_csv('stock.csv')
-print("✅ stock.csv saved.")
+# ▼ CSV保存
+df.to_csv(csv_filename, index=False)
+print(f"✅ {csv_filename} saved.")
 
-# --- Googleスプレッドシート連携 ---
-
-# 認証用の環境変数（GitHub Secrets に登録したJSON）
-creds_dict = json.loads(os.environ['GOOGLE_CREDENTIALS'])
-
-# 認証スコープの設定
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+# ▼ Google Sheets 認証
+scope = [
+    'https://spreadsheets.google.com/feeds',
+    'https://www.googleapis.com/auth/drive'
+]
+creds_dict = json.loads(os.environ['GOOGLE_CREDENTIALS'])  # GitHub Secretsに登録したJSON文字列
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
 
-# ✅ ←ここを自分のスプレッドシート名に変更！
-spreadsheet = client.open("株価シート")  # 例: "株価データ" など
-
-# シートの選択（最初のワークシートを使用）
-worksheet = spreadsheet.sheet1
-
-# スプレッドシートをクリアしてから更新
-worksheet.clear()
-df.reset_index(inplace=True)        # 日付インデックスを列に戻す
-df = df.astype(str)                 # すべて文字列に変換
-worksheet.update(
-    [df.columns.values.tolist()] + df.values.tolist()
-)
-
-
-print("✅ Googleスプレッドシートにデータを更新しました。")
-
-
-
-
+# ▼ スプレッドシートへ反映
+try:
+    spreadsheet = client.open(spreadsheet_name)
+    worksheet = spreadsheet.sheet1
+    header = df.columns.tolist()
+    values = df.values.tolist()
+    worksheet.update([header] + values)
+    print("✅ スプレッドシートに反映完了")
+except gspread.exceptions.SpreadsheetNotFound:
+    print("❌ スプレッドシートが見つかりません。名前や共有設定を確認してください。")
