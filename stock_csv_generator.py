@@ -33,7 +33,12 @@ worksheet = spreadsheet.sheet1
 
 # スプレッドシートをクリアしてから更新
 worksheet.clear()
-worksheet.update([df.reset_index(inplace=True).columns.values.tolist()] + df.reset_index().values.tolist() df = df.astype(str))
+df.reset_index(inplace=True)        # 日付インデックスを列に戻す
+df = df.astype(str)                 # すべて文字列に変換
+worksheet.update(
+    [df.columns.values.tolist()] + df.values.tolist()
+)
+
 
 print("✅ Googleスプレッドシートにデータを更新しました。")
 
