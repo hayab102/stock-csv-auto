@@ -5,38 +5,36 @@ import json
 import os
 from oauth2client.service_account import ServiceAccountCredentials
 
-# -------------------------------
-# ▼ 設定
-ticker = "AAPL"  # 任意のティッカーに変更可
-spreadsheet_name = "株価シート"  # 既に作成・共有済みのスプレッドシート名
-csv_filename = "stock.csv"
-# -------------------------------
+# ---------- 設定 ----------
+TICKER = "AAPL"                         # 任意のティッカー
+SPREADSHEET_NAME = "株価シート"       # スプレッドシート名
+CSV_FILENAME = "stock.csv"             # 保存ファイル名
+# ---------------------------
 
-# ▼ データ取得（10日間）
-df = yf.download(ticker, period='10d', interval='1d')
-df.reset_index(inplace=True)              # Date列をインデックスから戻す
-df = df.astype(str)                       # すべて文字列に変換（gspread対応）
+# データ取得（10日分）
+df = yf.download(TICKER, period="10d", interval="1d")
+df.reset_index(inplace=True)  # 日付を列に
+df = df.astype(str)           # 文字列変換（gspread対策）
 
-# ▼ CSV保存
-df.to_csv(csv_filename, index=False)
-print(f"✅ {csv_filename} saved.")
+# CSV保存
+df.to_csv(CSV_FILENAME, index=False)
+print(f"✅ {CSV_FILENAME} saved.")
 
-# ▼ Google Sheets 認証
-scope = [
-    'https://spreadsheets.google.com/feeds',
-    'https://www.googleapis.com/auth/drive'
-]
-creds_dict = json.loads(os.environ['GOOGLE_CREDENTIALS'])  # GitHub Secretsに登録したJSON文字列
+# Google認証
+scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+creds_dict = json.loads(os.environ['GOOGLE_CREDENTIALS'])
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
 
-# ▼ スプレッドシートへ反映
-try:
-    spreadsheet = client.open(spreadsheet_name)
-    worksheet = spreadsheet.sheet1
-    header = df.columns.tolist()
-    values = df.values.tolist()
-    worksheet.update([header] + values)
-    print("✅ スプレッドシートに反映完了")
-except gspread.exceptions.SpreadsheetNotFound:
-    print("❌ スプレッドシートが見つかりません。名前や共有設定を確認してください。")
+# スプレッドシート操作
+spreadsheet = client.open(SPREADSHEET_NAME)
+worksheet = spreadsheet.sheet1
+
+# スプレッドシート更新
+header = df.columns.tolist()
+rows = df.values.tolist()
+worksheet.update([header] + rows)
+
+print("✅ スプレッドシート更新完了。")
+
+
