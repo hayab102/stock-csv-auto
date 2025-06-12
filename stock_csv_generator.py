@@ -33,7 +33,7 @@ worksheet = spreadsheet.sheet1
 
 # スプレッドシートをクリアしてから更新
 worksheet.clear()
-worksheet.update([df.reset_index().columns.values.tolist()] + df.reset_index().values.tolist())
+worksheet.update([df.reset_index(inplace=True).columns.values.tolist()] + df.reset_index().values.tolist() df = df.astype(str))
 
 print("✅ Googleスプレッドシートにデータを更新しました。")
 
