@@ -5,24 +5,25 @@ import os
 import json
 from oauth2client.service_account import ServiceAccountCredentials
 
-# Google認証
+# 認証
 credentials = json.loads(os.environ["GOOGLE_CREDENTIALS"])
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials, scope)
 client = gspread.authorize(creds)
 
-# 株データ取得
+# データ取得
 ticker = "AAPL"
 df = yf.download(ticker, period="10d", interval="1d")
 
-# データ整形
+# データ加工
 df.reset_index(inplace=True)
-df.fillna("", inplace=True)       # 欠損値（NaN）を空文字に
-df = df.astype(str)               # 全部文字列に変換（gspreadが通る形式）
+df = df.fillna("")       # NaNを空文字に置換
+df = df.astype(str)      # すべて文字列化（gspreadが必要とする形式）
 
-# シート更新
-sheet = client.open("stock_sheet").sheet1  # シート名に注意
-sheet.clear()  # 既存データを削除
-sheet.update([df.columns.tolist()] + df.values.tolist())
+# スプレッドシートへ
+sheet = client.open("stock_sheet").sheet1
+sheet.clear()  # 一度全部消す（これ重要）
+data = [df.columns.tolist()] + df.values.tolist()
+sheet.update("A1", data)  # ← 書き出し開始位置を指定（必須）
 
-print("✅ Googleスプレッドシートにアップロード完了")
+print("✅ Google Sheets へアップロード完了")
