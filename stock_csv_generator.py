@@ -5,36 +5,27 @@ import json
 import os
 from oauth2client.service_account import ServiceAccountCredentials
 
-# ---------- 設定 ----------
-TICKER = "AAPL"                         # 任意のティッカー
-SPREADSHEET_NAME = "株価シート"       # スプレッドシート名
-CSV_FILENAME = "stock.csv"             # 保存ファイル名
-# ---------------------------
+# 対象の銘柄（ticker）を指定
+ticker = 'AAPL'
 
-# データ取得（10日分）
-df = yf.download(TICKER, period="10d", interval="1d")
-df.reset_index(inplace=True)  # 日付を列に
-df = df.astype(str)           # 文字列変換（gspread対策）
+# データ取得
+df = yf.download(ticker, period='10d', interval='1d')
+df.reset_index(inplace=True)
+df = df.astype(str)  # Google Sheetsへアップロードするため文字列化
 
-# CSV保存
-df.to_csv(CSV_FILENAME, index=False)
-print(f"✅ {CSV_FILENAME} saved.")
+# CSVファイルとして保存（オプション）
+df.to_csv("stock.csv", index=False)
+print("✅ stock.csv saved.")
 
-# Google認証
-scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+# Google Sheets に接続
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds_dict = json.loads(os.environ['GOOGLE_CREDENTIALS'])
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
 
-# スプレッドシート操作
-spreadsheet = client.open(SPREADSHEET_NAME)
-worksheet = spreadsheet.sheet1
+# スプレッドシートに接続・アップロード
+spreadsheet = client.open("stock_sheet")  # スプレッドシート名を正確に
+worksheet = spreadsheet.sheet1  # 最初のシートを対象に
 
-# スプレッドシート更新
-header = df.columns.tolist()
-rows = df.values.tolist()
-worksheet.update([header] + rows)
-
-print("✅ スプレッドシート更新完了。")
-
-
+worksheet.update([df.columns.values.tolist()] + df.values.tolist())
+print("✅ Google Spreadsheet updated.")
