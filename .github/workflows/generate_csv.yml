@@ -2,8 +2,8 @@ name: Generate stock CSV
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # 毎日0時（JSTなら9時）
-  workflow_dispatch:     # 手動実行も可
+    - cron: '0 0 * * *'  # 毎日0時UTC（JSTで9時）
+  workflow_dispatch:
 
 jobs:
   build:
@@ -15,7 +15,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.10
+        python-version: '3.10'
 
     - name: Install dependencies
       run: pip install -r requirements.txt
