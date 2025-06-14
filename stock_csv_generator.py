@@ -11,26 +11,27 @@ scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/au
 credentials = ServiceAccountCredentials.from_json_keyfile_dict(credentials_dict, scope)
 gc = gspread.authorize(credentials)
 
-# スプレッドシート
-spreadsheet = gc.open("stock_sheet")  # 適宜置き換え
+# スプレッドシートに接続
+spreadsheet = gc.open("stock_sheet")  # 適宜変更
 sheet = spreadsheet.sheet1
 
-# 株価データ取得
+# 株価データを取得
 ticker = "7203.T"
 df = yf.download(ticker, period="10d", interval="1d")
+
+# ✅ Timestamp列が混じるので、Indexをリセット
 df.reset_index(inplace=True)
 
-# ✅ 空白列名があると API エラー、強制的に埋める
-df.columns = [col if col != "" else "Unnamed" for col in df.columns]
+# ✅ すべてを「文字列化」かつ NaN を空文字に
+df = df.fillna("").astype(str)
 
-# ✅ 全データを文字列化
-df = df.astype(str)
+# ✅ 空文字列を含む列名を避ける
+df.columns = [col if col.strip() != "" else "Unnamed" for col in df.columns]
 
-# ✅ NaN を空文字に
-df = df.fillna("")
-
-# ✅ シートに書き込み（ヘッダー + 本体）
+# 書き込むデータ
 data = [df.columns.tolist()] + df.values.tolist()
+
+# ✅ gspread の順番通りに範囲→値を明示的に渡す
 sheet.update(range_name="A1", values=data)
 
-print("✅ 完了: データを正常に更新しました。")
+print("✅ 完了しました！Google Sheets にデータが正常に書き込まれました。")
