@@ -4,6 +4,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import json
 import os
+from ta.momentum import RSIIndicator  # ← 追加
 
 # 認証
 credentials_dict = json.loads(os.environ['GOOGLE_CREDENTIALS'])
@@ -18,9 +19,20 @@ sheet = spreadsheet.sheet1
 # 株価データを取得
 ticker = "7203.T"
 df = yf.download(ticker, period="10d", interval="1d")
+cols = ["ticker"] + [col for col in df.columns if col != "ticker"]
+df = df[cols]
 
 # インデックスを列に戻す（Date を含める）
 df.reset_index(inplace=True)
+
+# ✅ RSI + MA5 のテクニカル指標を計算（追加処理ここから）
+df["Close"] = df["Close"].astype(float)
+df["MA5"] = df["Close"].rolling(window=5).mean()
+df["RSI"] = RSIIndicator(close=df["Close"], window=14).rsi()
+
+# ✅ 勝ち条件：「終値 > MA5」かつ「RSI < 50」
+df["勝ち"] = ((df["Close"] > df["MA5"]) & (df["RSI"] < 50)).astype(int)
+# ✅ 追加処理ここまで
 
 # NaN → 空文字, すべて文字列へ
 df = df.fillna("").astype(str)
@@ -31,7 +43,8 @@ df.columns = [str(col).strip() if str(col).strip() != "" else "Unnamed" for col 
 # Google Sheets に書き込む形式に
 data = [df.columns.tolist()] + df.values.tolist()
 
-# 書き込み（range → values の順）
-sheet.update(range_name="A1", values=data)
+# シートをクリアして書き込み（ここはそのまま維持）
+sheet.clear()
+sheet.update(data)
 
-print("✅ 完了しました！Google Sheets にデータが正常に書き込まれました。")
+print("✅ Google Sheets に株データ＋勝率列を更新しました。")
