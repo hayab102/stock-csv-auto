@@ -18,9 +18,9 @@ sheet = spreadsheet.sheet1
 
 # 株価データを取得
 ticker = "7203.T"
-df = yf.download(ticker, period="10d", interval="1d")
-cols = ["ticker"] + [col for col in df.columns if col != "ticker"]
-df = df[cols]
+df = yf.download([ticker], period="10d", interval="1d")
+df.columns = df.columns.get_level_values(0)  # MultiIndexをフラットに
+df["ticker"] = ticker  # 銘柄名を追加
 
 # インデックスを列に戻す（Date を含める）
 df.reset_index(inplace=True)
