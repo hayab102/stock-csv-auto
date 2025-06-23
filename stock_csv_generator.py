@@ -18,7 +18,7 @@ sheet = spreadsheet.sheet1
 
 # 株価データを取得
 ticker = "7203.T"
-df = yf.download([ticker], period="10d", interval="1d")
+df = yf.download([ticker], period="30d", interval="1d")
 df.columns = df.columns.get_level_values(0)
 df.reset_index(inplace=True)
 df["ticker"] = ticker
