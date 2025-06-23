@@ -26,4 +26,4 @@ jobs:
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
       run: |
-        python main.py
+        python stock_csv_generator.py
